@@ -10,14 +10,12 @@ const cors = require("cors");
 app.use(express.json());
 app.use(cors());
 
-mongoose.connect("mongodb+srv://rahul1125:rahulvij22@cluster0.mjh1b5r.mongodb.net/e-commerce")
+mongoose.connect("mongodb+srv://priyansh1076be21:priyansh@cluster0.kakef36.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
 
 app.get("/", (req,res)=>{
     res.send("Express app is running");
 })
-
-//image store engine
 
 const storage = multer.diskStorage({
     destination: './upload/images',
@@ -29,7 +27,6 @@ const storage = multer.diskStorage({
 
 const upload = multer({storage:storage})
 
-//creating upload endppoint for images
 app.use("/images", express.static('upload/images'))
 
 app.post("/upload", upload.single('product'), (req, res) => {
@@ -45,8 +42,6 @@ app.post("/upload", upload.single('product'), (req, res) => {
         image_url: `http://localhost:${port}/images/${req.file.filename}`,
     });
 });
-
-//schema for creating products
 
 const Product = mongoose.model("Product", {
     id:{
@@ -118,8 +113,18 @@ app.post("/addproduct", async(req,res)=>{
 
 })
 
+app.post("/bulkaddproducts", async (req, res) => {
+    try {
+        const products = req.body.products;
 
-//creating api for deleting products
+        await Product.insertMany(products);
+        res.status(201).json({ success: true, message: "Products inserted successfully" });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ success: false, message: "Error inserting products" });
+    }
+});
+
 
 app.post("/removeproduct", async(req,res)=>{
     await Product.findOneAndDelete({id:req.body.id});
@@ -130,9 +135,6 @@ app.post("/removeproduct", async(req,res)=>{
     })
 })
 
-
-
-// creating api for getting all products
 
 app.get("/allproducts", async(req,res)=>{
     let products = await Product.find({});
