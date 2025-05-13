@@ -21,7 +21,7 @@ const Loginsignup = () => {
     console.log("login executed", formdata);
 
     let responsedata;
-    await fetch('http://localhost:4000/login',{
+    await fetch('https://ecommerce-qbcy.onrender.com/login',{
       method: 'POST',
       headers:{
         Accept:'application/form-data',
@@ -46,7 +46,7 @@ const Loginsignup = () => {
     console.log("signup executed", formdata);
 
     let responsedata;
-    await fetch('http://localhost:4000/signup',{
+    await fetch('https://ecommerce-qbcy.onrender.com/signup',{
       method: 'POST',
       headers:{
         Accept:'application/form-data',

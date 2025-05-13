@@ -18,49 +18,66 @@ const ShopContextProvider = (props) => {
 
     
     useEffect(()=>{
-        fetch('http://localhost:4000/allproducts')
+        fetch('https://ecommerce-qbcy.onrender.com/allproducts')
         .then((response)=>response.json())
         .then((data)=>setAll_Product(data))
 
         if(localStorage.getItem('auth-token')){
-            fetch('http://localhost:4000/getcart', {
+            fetch('https://ecommerce-qbcy.onrender.com/getcart', {
                 method: 'POST',
                 headers:{
-                    Accept:'application/form-data',
-                    'auth-token':`${localStorage.getItem('auth-token')}`,
+                    'auth-token': localStorage.getItem('auth-token'),
                     'Content-Type': 'application/json',
                 },
-                body:"",
-            }).then((response)=>response.json())
+            })
+            .then((response)=>response.json())
             .then((data)=>setCartItems(data));
+
         }
     }, [])
 
 
     const addToCart = (itemId) => {
-        setCartItems((prev) =>  ({...prev, [itemId]: prev[itemId]+1}));
-        // console.log(cartItems);
-        if(localStorage.getItem('auth-token')){
-            fetch('http://localhost:4000/addtocart',{
-                method: 'POST',
-                headers:{
-                    Accept: 'application/form-data',
-                    'auth-token': `${localStorage.getItem('auth-token')}`,
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify({"itemId": itemId}),
-            })
-            .then((response)=>response.json())
-            .then((data)=>console.log(data));
-        }
-
+ 
+    const token = localStorage.getItem('auth-token');
+    if (!token) {
+        alert("Please log in to add items to your cart.");
+        return;
     }
+   setCartItems((prev) => ({ ...prev, [itemId]: prev[itemId] + 1 }));
+    
+    fetch('https://ecommerce-qbcy.onrender.com/addtocart', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'auth-token': token,
+        },
+        body: JSON.stringify({ itemId }),
+    })
+    .then(async (response) => {
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.errors || "Failed to add to cart");
+        }
+        return response.json();
+    })
+    .then((data) => {
+        console.log("Added to cart:",data);
+    })
+    .catch((error) => {
+        alert("You must be logged in to add items to your cart.");
+        console.error(error.message);
+        // Optionally redirect to login
+        // window.location.href = '/login';
+    });
+};
+
 
     const removeFromCart = (itemId) => {
         setCartItems((prev) =>  ({...prev, [itemId]: prev[itemId]-1}));
 
         if(localStorage.getItem('auth-token')){
-            fetch('http://localhost:4000/removefromcart',{
+            fetch('https://ecommerce-qbcy.onrender.com/removefromcart',{
                 method: 'POST',
                 headers:{
                     Accept: 'application/form-data',
@@ -70,7 +87,6 @@ const ShopContextProvider = (props) => {
                 body: JSON.stringify({"itemId": itemId}),
             })
             .then((response)=>response.json())
-            .then((data)=>console.lod(data));
         }
 
     }

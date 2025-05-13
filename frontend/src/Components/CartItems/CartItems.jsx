@@ -7,6 +7,50 @@ import remove_icon from '../Assets/cart_cross_icon.png';
 const CartItems = () => {
 
     const {getTotalCartAmount, all_product, cartItems, removeFromCart} = useContext(ShopContext);
+    const handleCheckout = async () => {
+    const amount = getTotalCartAmount();
+
+    try {
+        const res = await fetch("https://ecommerce-qbcy.onrender.com/create-order", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({ amount }),
+        });
+
+        const order = await res.json();
+
+        const options = {
+            key: "rzp_test_kdNdtNdGkhC181", 
+            amount: order.amount,
+            currency: "INR",
+            name: "MyShop Checkout",
+            description: "Test Transaction",
+            order_id: order.id,
+            handler: function (response) {
+                alert("Payment successful!");
+                console.log(response); 
+            },
+            prefill: {
+                name: "John Doe",
+                email: "johndoe@example.com",
+                contact: "9999999999"
+            },
+            theme: {
+                color: "#3399cc"
+            }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.open();
+
+    } catch (error) {
+        console.error("Checkout error", error);
+        alert("Payment failed to initialize.");
+    }
+};
+
   return (
     <div className='cartitems'>
 
@@ -69,7 +113,7 @@ const CartItems = () => {
                     </div>
                 </div>
 
-                <button>PROCEED TO CHECKOUT</button>
+                <button onClick={handleCheckout}>PROCEED TO CHECKOUT</button>
 
             </div>
 

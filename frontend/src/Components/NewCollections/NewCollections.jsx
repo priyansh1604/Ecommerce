@@ -9,7 +9,7 @@ const NewCollections = () => {
   const [new_collections,setNew_collection] = useState([]);
 
   useEffect(() => {
-    fetch('http://localhost:4000/newcollections')
+    fetch('https://ecommerce-qbcy.onrender.com/newcollections')
       .then((response) => response.json())  // Add () to invoke the json method
       .then((data) => setNew_collection(data));
   }, []);

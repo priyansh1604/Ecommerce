@@ -9,6 +9,7 @@ const cors = require("cors");
 
 app.use(express.json());
 app.use(cors());
+const razorpay = require("./utils/Payment");
 
 mongoose.connect("mongodb+srv://priyansh1076be21:priyansh@cluster0.kakef36.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
 
@@ -39,7 +40,7 @@ app.post("/upload", upload.single('product'), (req, res) => {
 
     res.json({
         success: 1,
-        image_url: `http://localhost:${port}/images/${req.file.filename}`,
+        image_url: `https://ecommerce-qbcy.onrender.com/images/${req.file.filename}`,
     });
 });
 
@@ -273,20 +274,23 @@ const fetchuser = async(req,res,next) => {
 }
 
 
-
 //creating for adding in cart
-app.post("/addtocart", async (req, res) => {
-    if (!req.user || !req.user.id) {
-        return res.status(401).json({ error: "Unauthorized" });
+app.post("/addtocart", fetchuser, async (req, res) => {
+    console.log("added", req.body.itemId);
+
+    let userdata = await Users.findOne({ _id: req.user.id });
+    if (!userdata) {
+        return res.status(404).json({ error: "User not found" });
     }
 
-    
-    console.log("added", req.body.itemId);
-    let userdata = await Users.findOne({ _id: req.user.id });
     userdata.cartData[req.body.itemId] += 1;
-    await Users.findOneAndUpdate({ _id: req.user.id }, { cartData: userdata.cartData });
-    res.send("Added");
+    await Users.findOneAndUpdate(
+        { _id: req.user.id },
+        { cartData: userdata.cartData }
+    );
+    res.json({ success: true, message: "Added to cart" });
 });
+
 
 // app.post("/addtocart", async(req,res)=>{
 //     // console.log(req.body);
@@ -309,19 +313,39 @@ app.post("/removefromcart", fetchuser, async(req,res)=>{
     if(userdata.cartData[req.body.itemId]>0)
     userdata.cartData[req.body.itemId] -= 1;
     await Users.findOneAndUpdate({_id:req.user.id},{cartData:userdata.cartData});
-    res.send("removed");
+    res.json({ success: true, message: "removed" });
+
 
 })
 
 
 //creating endpoint to get cart data
 
-app.get("/getcart", fetchuser, async(req,res)=>{
+app.post("/getcart", fetchuser, async(req,res)=>{
     console.log("getcart");
 
-    let userdata = await Users.findOne({_id:req.body.id});
+    let userdata = await Users.findOne({_id:req.user.id});
     res.json(userdata.cartData);
 })
+
+app.post("/create-order", async (req, res) => {
+    const { amount } = req.body;
+
+    const options = {
+        amount: amount * 100,
+        currency: "INR",
+        receipt: `receipt_order_${Date.now()}`
+    };
+
+    try {
+        const order = await razorpay.orders.create(options);
+        res.status(201).json(order);
+    } catch (error) {
+        console.error("Razorpay order creation failed:", error);
+        res.status(500).json({ success: false, error: "Order creation failed" });
+    }
+});
+
 
 
 app.listen(port,(error)=>{

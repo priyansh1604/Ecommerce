@@ -30,7 +30,7 @@ const Hero = () => {
         </div>
 
         <div  className='hero-right'>
-          <img src={hero_img} alt="" />
+          <img src={hero_img} style={{marginTop: "100px"}} alt="" />
         </div>
       
     </div>
