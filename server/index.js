@@ -9,9 +9,13 @@ const cors = require("cors");
 
 app.use(express.json());
 app.use(cors());
+require('dotenv').config();
 const razorpay = require("./utils/Payment");
 
-mongoose.connect("mongodb+srv://priyansh1076be21:priyansh@cluster0.kakef36.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0")
+mongoose.connect(process.env.MONGODB_URI, {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+});
 
 
 app.get("/", (req,res)=>{
@@ -137,12 +141,16 @@ app.post("/removeproduct", async(req,res)=>{
 })
 
 
-app.get("/allproducts", async(req,res)=>{
-    let products = await Product.find({});
-    console.log("fetched");
-
-    res.send(products);
-})
+app.get("/allproducts", async (req, res) => {
+  let products = await Product.find({});
+  const updated = products.map((p) => {
+    if (p.image.includes("localhost:4000")) {
+      p.image = p.image.replace("http://localhost:4000", "https://ecommerce-qbcy.onrender.com");
+    }
+    return p;
+  });
+  res.send(updated);
+});
 
 
 //schema for user model
